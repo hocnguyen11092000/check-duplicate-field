@@ -73,6 +73,7 @@ export class AppComponent implements OnInit {
     );
     // .subscribe();
     let duplicatFieldsCase1: any = {};
+    let duplicatFieldsCase2: any = {};
 
     merge(
       ...this.getFormArray.controls.map((i, idx) =>
@@ -110,7 +111,46 @@ export class AppComponent implements OnInit {
           ...this.checkDuplicate(value, data, index),
         };
 
-        console.log(duplicatFieldsCase1);
+        console.log('case 1: ', duplicatFieldsCase1);
+      });
+
+    merge(
+      ...this.getFormArray.controls.map((i, idx) =>
+        i.valueChanges.pipe(
+          startWith(null),
+          filter((val) => !!val),
+          map((val) => {
+            return {
+              index: idx,
+              value: _.values(_.omit(val, ['birthDay'])).join(''),
+            };
+          })
+        )
+      )
+    )
+      .pipe(
+        debounceTime(500),
+        withLatestFrom(
+          combineLatest(
+            this.getFormArray.controls.map((i) =>
+              i.valueChanges.pipe(
+                startWith(null),
+                map((val) => _.values(_.omit(val, ['birthDay'])))
+              )
+            )
+          )
+        )
+      )
+      .subscribe(([field, data]) => {
+        const { index, value } = field;
+
+        duplicatFieldsCase2 = {
+          ...duplicatFieldsCase2,
+          [index]: false,
+          ...this.checkDuplicate(value, data, index),
+        };
+
+        console.log('case 2: ', duplicatFieldsCase2);
       });
   }
 
