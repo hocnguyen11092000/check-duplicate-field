@@ -1,10 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import {
-  FormArray,
-  FormControl,
-  FormGroup,
-  NonNullableFormBuilder,
-} from '@angular/forms';
+import { FormArray, FormGroup, NonNullableFormBuilder } from '@angular/forms';
 import * as _ from 'lodash';
 import {
   combineLatest,
@@ -16,6 +11,8 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs';
+import { AbstractControlWarning } from './abstracts';
+import { FormControlWarn } from './abstracts/form.class';
 
 @Component({
   selector: 'app-root',
@@ -24,31 +21,66 @@ import {
 })
 export class AppComponent implements OnInit {
   title = 'check-duplicate-field';
+  dup: any = {};
+  dup2: any = {};
+
   readonly formArray = inject(NonNullableFormBuilder).group({
     array: new FormArray([
       new FormGroup({
-        fullname: new FormControl(''),
-        gender: new FormControl(''),
-        birthDay: new FormControl(''),
-        id: new FormControl(''),
+        fullname: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        gender: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        birthDay: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        id: new FormControlWarn<AbstractControlWarning<{ duplicate: true }>>(
+          ''
+        ),
       }),
       new FormGroup({
-        fullname: new FormControl(''),
-        gender: new FormControl(''),
-        birthDay: new FormControl(''),
-        id: new FormControl(''),
+        fullname: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        gender: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        birthDay: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        id: new FormControlWarn<AbstractControlWarning<{ duplicate: true }>>(
+          ''
+        ),
       }),
       new FormGroup({
-        fullname: new FormControl(''),
-        gender: new FormControl(''),
-        birthDay: new FormControl(''),
-        id: new FormControl(''),
+        fullname: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        gender: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        birthDay: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        id: new FormControlWarn<AbstractControlWarning<{ duplicate: true }>>(
+          ''
+        ),
       }),
       new FormGroup({
-        fullname: new FormControl(''),
-        gender: new FormControl(''),
-        birthDay: new FormControl(''),
-        id: new FormControl(''),
+        fullname: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        gender: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        birthDay: new FormControlWarn<
+          AbstractControlWarning<{ duplicate: true }>
+        >(''),
+        id: new FormControlWarn<AbstractControlWarning<{ duplicate: true }>>(
+          ''
+        ),
       }),
     ]),
   });
@@ -58,112 +90,45 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    combineLatest(
-      this.getFormArray.controls.map((i) =>
-        i.valueChanges.pipe(
-          startWith(null),
-          map((val) => _.values(_.omit(val, ['id'])))
-        )
-      )
-    ).pipe(
-      debounceTime(500),
-      tap((val) => {
-        console.log(val);
-      })
-    );
-    // .subscribe();
-    let duplicatFieldsCase1: any = {};
-    let duplicatFieldsCase2: any = {};
-
-    merge(
-      ...this.getFormArray.controls.map((i, idx) =>
-        i.valueChanges.pipe(
-          startWith(null),
-          filter((val) => !!val),
-          map((val) => {
-            return {
-              index: idx,
-              value: _.values(_.omit(val, ['id'])).join(''),
-            };
-          })
-        )
-      )
-    )
+    this.getFormArray.valueChanges
       .pipe(
-        debounceTime(500),
-        withLatestFrom(
-          combineLatest(
-            this.getFormArray.controls.map((i) =>
-              i.valueChanges.pipe(
-                startWith(null),
-                map((val) => _.values(_.omit(val, ['id'])))
-              )
-            )
-          )
-        )
+        debounceTime(300),
+        tap((val) => {
+          const idx: any = [];
+          const idx2: any = [];
+          this.dup = {};
+          this.dup2 = {};
+
+          _.forEach(val, (item1: any, index1: number) => {
+            const val1 = _.values(item1).join('');
+
+            _.forEach(val, (item2: any, index2: number) => {
+              const val2 = _.values(item2).join('');
+
+              if (index1 !== index2 && val1 && val2) {
+                if (_.isEqual(_.omit(item1, ['id']), _.omit(item2, ['id']))) {
+                  idx.push(index1);
+                  _.set(this.dup, 'case', 1);
+                  _.set(this.dup, 'index', [...new Set(idx)]);
+                }
+
+                if (
+                  _.isEqual(
+                    _.omit(item1, ['birthDay']),
+                    _.omit(item2, ['birthDay'])
+                  )
+                ) {
+                  idx2.push(index1);
+                  _.set(this.dup2, 'case', 2);
+                  _.set(this.dup2, 'index', [...new Set(idx2)]);
+                }
+              }
+            });
+          });
+
+          console.log(this.dup, this.dup2);
+        })
       )
-      .subscribe(([field, data]) => {
-        const { index, value } = field;
-
-        duplicatFieldsCase1 = {
-          ...duplicatFieldsCase1,
-          [index]: false,
-          ...this.checkDuplicate(value, data, index),
-        };
-
-        console.log('case 1: ', duplicatFieldsCase1);
-      });
-
-    merge(
-      ...this.getFormArray.controls.map((i, idx) =>
-        i.valueChanges.pipe(
-          startWith(null),
-          filter((val) => !!val),
-          map((val) => {
-            return {
-              index: idx,
-              value: _.values(_.omit(val, ['birthDay'])).join(''),
-            };
-          })
-        )
-      )
-    )
-      .pipe(
-        debounceTime(500),
-        withLatestFrom(
-          combineLatest(
-            this.getFormArray.controls.map((i) =>
-              i.valueChanges.pipe(
-                startWith(null),
-                map((val) => _.values(_.omit(val, ['birthDay'])))
-              )
-            )
-          )
-        )
-      )
-      .subscribe(([field, data]) => {
-        const { index, value } = field;
-
-        duplicatFieldsCase2 = {
-          ...duplicatFieldsCase2,
-          [index]: false,
-          ...this.checkDuplicate(value, data, index),
-        };
-
-        console.log('case 2: ', duplicatFieldsCase2);
-      });
-  }
-
-  checkDuplicate(value: string, data: Array<any>, index: number) {
-    const duplicate: any = {};
-
-    _.forEach(data, (item: any, idx: number) => {
-      if (idx !== index && value === _.values(item).join('')) {
-        duplicate[idx] = true;
-        duplicate[index] = true;
-      }
-    });
-
-    return duplicate;
+      .subscribe();
   }
 }

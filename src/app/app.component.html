@@ -10,9 +10,25 @@
             formControlName="fullname"
             placeholder="fullname"
           />
+          <ng-container
+            *ngIf="
+              (dup && dup['case'] === 1 && dup['index'].includes(idx)) ||
+              (dup2 && dup2['case'] === 2 && dup2['index'].includes(idx))
+            "
+          >
+            <div class="warning-mgs">Thông tin cung cấp bị trùng</div>
+          </ng-container>
         </div>
         <div class="form-control">
           <input type="text" formControlName="gender" placeholder="gender" />
+          <ng-container
+            *ngIf="
+              (dup && dup['case'] === 1 && dup['index'].includes(idx)) ||
+              (dup2 && dup2['case'] === 2 && dup2['index'].includes(idx))
+            "
+          >
+            <div class="warning-mgs">Thông tin cung cấp bị trùng</div>
+          </ng-container>
         </div>
         <div class="form-control">
           <input
@@ -20,13 +36,21 @@
             formControlName="birthDay"
             placeholder="birthDay"
           />
+          <ng-container
+            *ngIf="dup && dup['case'] === 1 && dup['index'].includes(idx)"
+          >
+            <div class="warning-mgs">Thông tin cung cấp bị trùng</div>
+          </ng-container>
         </div>
         <div class="form-control">
           <input type="text" formControlName="id" placeholder="id" />
+          <ng-container
+            *ngIf="dup2 && dup2['case'] === 2 && dup2['index'].includes(idx)"
+          >
+            <div class="warning-mgs">Thông tin cung cấp bị trùng</div>
+          </ng-container>
         </div>
       </div>
     </ng-container>
   </div>
 </form>
-
-{{ formArray.getRawValue() | json }}
