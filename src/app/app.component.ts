@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
   title = 'check-duplicate-field';
   dup: any = {};
   dup2: any = {};
+  active = false;
 
   readonly formArray = inject(NonNullableFormBuilder).group({
     array: new FormArray([
@@ -94,15 +95,16 @@ export class AppComponent implements OnInit {
       .pipe(
         debounceTime(300),
         tap((val) => {
+          const rawValue = this.getFormArray.getRawValue();
           const idx: any = [];
           const idx2: any = [];
           this.dup = {};
           this.dup2 = {};
 
-          _.forEach(val, (item1: any, index1: number) => {
+          _.forEach(rawValue, (item1: any, index1: number) => {
             const val1 = _.values(item1).join('');
 
-            _.forEach(val, (item2: any, index2: number) => {
+            _.forEach(rawValue, (item2: any, index2: number) => {
               const val2 = _.values(item2).join('');
 
               if (index1 !== index2 && val1 && val2) {
@@ -130,5 +132,19 @@ export class AppComponent implements OnInit {
         })
       )
       .subscribe();
+  }
+
+  handleSubmitForm() {
+    console.log(this.getFormArray.value);
+  }
+
+  handleActiveChange(status: boolean) {
+    if (status) {
+      this.getFormArray.at(0).disable();
+
+      return;
+    }
+
+    this.getFormArray.at(0).enable();
   }
 }

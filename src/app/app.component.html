@@ -1,6 +1,13 @@
 <h2>hello world</h2>
 
-<form [formGroup]="formArray">
+<input
+  type="checkbox"
+  [(ngModel)]="active"
+  (ngModelChange)="handleActiveChange($event)"
+/>
+<span>Active</span>
+
+<form #ngForm="ngForm" [formGroup]="formArray" (ngSubmit)="handleSubmitForm()">
   <div class="form-array" formArrayName="array">
     <ng-container *ngFor="let c of getFormArray.controls; let idx = index">
       <div [formGroupName]="idx" class="group">
@@ -53,4 +60,6 @@
       </div>
     </ng-container>
   </div>
+
+  <button>submit</button>
 </form>
